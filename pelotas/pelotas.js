@@ -11,6 +11,7 @@ var ctx = null;
 var ancho = 1000;
 var alto = 550;
 var g = 0;   //gravedad
+var maxVel = 10;
 const COLOR_NAMES = [
     "AliceBlue",
     "AntiqueWhite",
@@ -161,12 +162,10 @@ const COLOR_NAMES = [
     "YellowGreen",
   ];
 
-var pelota = {
-    'r': 30,
-    'pos': {'x': 31, 'y': 31},
-    'vel': {'x': 5, 'y': 3},
-    'color': asignarColor()
-}
+var numObjetos = 30;        //Cantidad dfe objetos
+var listaObjetos = [];
+
+
 
 /**
  * Cargue y configuración inicial
@@ -176,56 +175,97 @@ window.addEventListener('load', function() {
     ctx = canvas.getContext('2d');
     canvas.width = ancho;
     canvas.height = alto;
+
+    for (let i = 0; i < numObjetos; i++) {
+        listaObjetos.push(new Triangulo());  
+    }
+
     run();
 });
 
 function run() {
-    dibujar();
-    actualizar();
+    borrar();
+
+    for (let i = 0; i < numObjetos; i++) {
+        listaObjetos[i].dibujar();
+        listaObjetos[i].actualizar();  
+    }
+
     requestAnimationFrame(run);
 }
 
-function dibujar() {
+function borrar() {
     ctx.beginPath();
     //Fondo
-    ctx.fillStyle = "Azure";
+    ctx.fillStyle = "Azure";        //Color de relleno
     ctx.fillRect(0, 0, ancho, alto);
-    ctx.strokeStyle = "red";
+    ctx.strokeStyle = "yellow";     //Grosor de la linea
     ctx.lineWidth = 5;
     ctx.strokeRect(0, 0, ancho, alto);
-
-    //Esfera
-    ctx.arc(pelota.pos.x, pelota.pos.y, pelota.r, 0, 2*Math.PI);
-    ctx.fillStyle= pelota.color;
-    ctx.strokeStyle = pelota.color;
-    ctx.fill();
     ctx.stroke();
 }
 
-function actualizar() {
-    //Aceleración de la gravedad
-    pelota.vel.y += g;
-    pelota.pos.x += pelota.vel.x;
-    pelota.pos.y += pelota.vel.y;
-    rebotar();
+
+
+
+/**************  CLASE ************************************************ */
+
+class Objeto {
+    constructor() {
+        this.r = aleatorio(5, 20);
+        this.pos = {'x': aleatorio(this.r, ancho -this.r),
+        'y': aleatorio(this.r, alto -this.r)  }
+        this.vel = {'x': aleatorio(-maxVel, maxVel),
+        'y': aleatorio(-maxVel, maxVel)  } 
+        this.color = asignarColor();
+    }
+
+    dibujar() {
+        ctx.beginPath();
+        ctx.arc(this.pos.x, this.pos.y, this.r, 0, 2*Math.PI);
+        ctx.fillStyle= this.color;
+        ctx.strokeStyle = this.color;
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    actualizar() {
+        //Aceleración de la gravedad
+        this.vel.y += g;
+        this.pos.x += this.vel.x;
+        this.pos.y += this.vel.y;
+        this.rebotar();
+    }
+    rebotar() {
+        if ((this.pos.x >= ancho - this.r) || (this.pos.x <= this.r)){
+            this.vel.x *= -1;
+        }
+        if ((this.pos.y >= alto - this.r) || (this.pos.y <= this.r)){
+            this.vel.y *= -1;
+        }
+        
+    }
 }
 
-function rebotar() {
-    if ((pelota.pos.x >= ancho - pelota.r) || (pelota.pos.x <= pelota.r)){
-        pelota.vel.x *= -1;
+class Triangulo extends Objeto{
+
+    dibujar() {
+        let p1 = {'x': this.pos.x, 'y': this.pos.y - this.r};
+        let p2 = {'x': this.pos.x + this.r , 'y': this.pos.y};
+        let p3 = {'x': this.pos.x - this.r , 'y': this.pos.y};
+
+        ctx.beginPath();
+        ctx.fillStyle= this.color;
+        ctx.strokeStyle = this.color;
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.lineTo(p3.x, p3.y);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.fill();
     }
-    if ((pelota.pos.y >= alto - pelota.r) || (pelota.pos.y <= pelota.r)){
-        pelota.vel.y *= -1;
-    }
-    
+
 }
-
-
-
-
-
-
-
 //
 
 //************** FUNCIONES AUXILIARES *****************/
